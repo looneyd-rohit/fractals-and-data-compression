@@ -1,1 +1,0 @@
-python compress-demo.py LennaLow.bmp

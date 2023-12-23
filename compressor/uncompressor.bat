@@ -1,1 +1,0 @@
-python uncompress-demo.py LennaLow.fif 5 True
