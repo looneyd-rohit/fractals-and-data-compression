@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fractals Demo</title>
+    <script src="./p5/p5.min.js" defer></script>
+  </head>
+  <body></body>
+  <script>
+    let minval = -2;
+    let maxval = 2;
+    let minSlider;
+    let maxSlider;
+    let juliaReSlider;
+    let juliaImSlider;
+    let maxIterationsSlider;
+    let MAX_ITERATIONS = 100;
+
+    let juliaConstantRe = -0.7;
+    let juliaConstantIm = 0.27015;
+
+    // Span elements to display slider values
+    let minSpan;
+    let maxSpan;
+    let juliaReSpan;
+    let juliaImSpan;
+    let maxIterationsSpan;
+
+    let incrementButton;
+    let incrementInput;
+    let isIncrementing = false;
+    let incrementAmount = 1; // Default increment amount
+
+    function setup() {
+      createCanvas(950, 475); // Increased canvas height for a gap
+      pixelDensity(1);
+
+      minSlider = createSlider(-2, 0, -2, 0.01);
+      maxSlider = createSlider(0, 2, 2, 0.01);
+      juliaReSlider = createSlider(-2, 2, juliaConstantRe, 0.0001);
+      juliaImSlider = createSlider(-2, 2, juliaConstantIm, 0.0001);
+      maxIterationsSlider = createSlider(1, 1000, MAX_ITERATIONS, 1);
+
+      // Create span elements to display slider values
+      minSpan = createSpan("Min: " + minSlider.value());
+      maxSpan = createSpan(" Max: " + maxSlider.value());
+      juliaReSpan = createSpan(" Real: " + juliaReSlider.value());
+      juliaImSpan = createSpan(" Imaginary: " + juliaImSlider.value());
+      maxIterationsSpan = createSpan(
+        "Max Iterations: " + maxIterationsSlider.value()
+      );
+
+      // Label the sliders
+      createElement("p", "Mandelbrot Set:");
+      createDiv().child(minSlider).child(minSpan);
+      createDiv().child(maxSlider).child(maxSpan);
+      createElement("p", "Julia Set:");
+      createDiv().child(juliaReSlider).child(juliaReSpan);
+      createDiv().child(juliaImSlider).child(juliaImSpan);
+      createElement("p", "Options:");
+      createDiv().child(maxIterationsSlider).child(maxIterationsSpan);
+
+      // Create a button for incrementing iterations
+      incrementButton = createButton("Start Incrementing");
+      incrementButton.mousePressed(toggleIncrement);
+
+      // Create an input field for specifying the increment amount
+      incrementInput = createInput("1", "number");
+      incrementInput.attribute("min", "1");
+      incrementInput.attribute("max", "5");
+      incrementInput.attribute("step", "1");
+      incrementInput.input(updateIncrementAmount);
+
+      // Label for the increment input field
+      createP("Increment Amount:").child(incrementInput);
+    }
+
+    function draw() {
+      background(255);
+
+      // Mandelbrot Set
+      drawFractal(0, width / 2, minSlider.value(), maxSlider.value(), 0);
+
+      // White line separation
+      stroke(255);
+      line(width / 2, 0, width / 2, height);
+
+      // Julia Set
+      juliaConstantRe = juliaReSlider.value();
+      juliaConstantIm = juliaImSlider.value();
+      MAX_ITERATIONS = maxIterationsSlider.value();
+      drawFractal(width / 2, width, minSlider.value(), maxSlider.value(), 1);
+
+      // Update span elements to display current slider values
+      updateSpanValues();
+    }
+
+    function toggleIncrement() {
+      if (!isIncrementing) {
+        isIncrementing = true;
+        incrementButton.html("Stop Incrementing");
+      } else {
+        isIncrementing = false;
+        incrementButton.html("Start Incrementing");
+      }
+    }
+
+    function updateIncrementAmount() {
+      const inputValue = parseInt(incrementInput.value());
+      if (!isNaN(inputValue) && inputValue >= 1 && inputValue <= 5) {
+        incrementAmount = inputValue;
+      } else {
+        incrementAmount = 1; // Set default increment amount to 1 for out-of-range values
+      }
+      incrementInput.value(incrementAmount); // Update the input field value
+    }
+
+    function updateSpanValues() {
+      // Update span elements to display current slider values
+      minSpan.html("Min: " + minSlider.value());
+      maxSpan.html(" Max: " + maxSlider.value());
+      juliaReSpan.html(" Real: " + juliaReSlider.value());
+      juliaImSpan.html(" Imaginary: " + juliaImSlider.value());
+
+      // Check if maxIterationsSlider value reaches 1000
+      if (maxIterationsSlider.value() === 1000) {
+        isIncrementing = false;
+        incrementButton.html("Start Incrementing");
+      }
+
+      // Increment iterations if the button is pressed and the value is less than 1000
+      if (isIncrementing && maxIterationsSlider.value() < 1000) {
+        maxIterationsSlider.value(
+          maxIterationsSlider.value() + incrementAmount
+        );
+      }
+
+      maxIterationsSpan.html("Max Iterations: " + maxIterationsSlider.value());
+    }
+
+    function mousePressed() {
+      // Check if the mouse is over any slider, and update span values accordingly
+      if (
+        mouseX > minSlider.x &&
+        mouseX < minSlider.x + minSlider.width &&
+        mouseY > minSlider.y &&
+        mouseY < minSlider.y + minSlider.height
+      ) {
+        updateSpanValues();
+      } else if (
+        mouseX > maxSlider.x &&
+        mouseX < maxSlider.x + maxSlider.width &&
+        mouseY > maxSlider.y &&
+        mouseY < maxSlider.y + maxSlider.height
+      ) {
+        updateSpanValues();
+      } else if (
+        mouseX > juliaReSlider.x &&
+        mouseX < juliaReSlider.x + juliaReSlider.width &&
+        mouseY > juliaReSlider.y &&
+        mouseY < juliaReSlider.y + juliaReSlider.height
+      ) {
+        updateSpanValues();
+      } else if (
+        mouseX > juliaImSlider.x &&
+        mouseX < juliaImSlider.x + juliaImSlider.width &&
+        mouseY > juliaImSlider.y &&
+        mouseY < juliaImSlider.y + juliaImSlider.height
+      ) {
+        updateSpanValues();
+      } else if (
+        mouseX > maxIterationsSlider.x &&
+        mouseX < maxIterationsSlider.x + maxIterationsSlider.width &&
+        mouseY > maxIterationsSlider.y &&
+        mouseY < maxIterationsSlider.y + maxIterationsSlider.height
+      ) {
+        updateSpanValues();
+      }
+      updateSpanValues();
+    }
+
+    function drawFractal(xstart, xend, ystart, yend, set) {
+      loadPixels();
+
+      for (let x = xstart; x < xend; x++) {
+        for (let y = 0; y < height; y++) {
+          let a = map(x, xstart, xend, minSlider.value(), maxSlider.value());
+          let b = map(y, 0, height, ystart, yend);
+
+          let ca = a;
+          let cb = b;
+
+          if (set === 1) {
+            ca = juliaConstantRe;
+            cb = juliaConstantIm;
+          }
+
+          let n = 0;
+          let z = 0;
+
+          while (n < MAX_ITERATIONS) {
+            let aa = a * a - b * b;
+            let bb = 2 * a * b;
+
+            a = aa + ca;
+            b = bb + cb;
+
+            if (abs(a + b) > 16) {
+              // according to mathematical proofs all points within
+              // length 2 are to be taken, but I am using a specific
+              // value to point out the nature in which the equation
+              // blows up or grows towards infinity
+              break;
+            }
+
+            n++;
+          }
+
+          // Map the result to a grayscale value
+          let bright = map(n, 0, MAX_ITERATIONS, 0, 1);
+          bright = map(sqrt(bright), 0, 1, 0, 255);
+
+          if (n === MAX_ITERATIONS) {
+            bright = 0;
+          }
+
+          let pix = (x + y * width) * 4;
+          pixels[pix + 0] = bright;
+          pixels[pix + 1] = bright;
+          pixels[pix + 2] = bright;
+          pixels[pix + 3] = 255;
+        }
+      }
+
+      updatePixels();
+    }
+  </script>
+</html>
